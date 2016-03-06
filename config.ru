@@ -1,2 +1,2 @@
-require 'twiml-quickstart'
+require './twiml-quickstart'
 run Sinatra::Application
