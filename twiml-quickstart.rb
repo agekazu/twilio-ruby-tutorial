@@ -7,10 +7,10 @@ require 'twilio-ruby'
 #
 get '/hello-twilio' do
   Twilio::TwiML::Response.new do |r|
-    r.Gather :numDigits => '1', :action => '/hello-monkey/handle-gather', :method => 'get' do |g|
-      g.Say 'こんにちは！'
-      g.Say '音声を録音する場合は1, '
-      g.Say 'なにもしない場合は2を押してください...'
+    r.Gather :numDigits => '1', :action => '/hello-twilio/handle-gather', :method => 'get' do |g|
+      g.Say 'こんにちは！', :language => 'ja-jp'
+      g.Say '音声を録音する場合は1, ', :language => 'ja-jp'
+      g.Say 'なにもしない場合は2を押してください...', :language => 'ja-jp'
     end
   end.text
 end
@@ -21,21 +21,28 @@ end
 get '/hello-twilio/handle-gather' do
   pushed_key = params['Digits']
   # 1, 2以外のボタンが押された場合はもう一度メッセージを入力させる
-  redirect '/hello-twilio/handle-gather' unless [1, 2].include?(params['Digits'])
+  redirect '/hello-twilio' unless ['1', '2'].include? pushed_key
 
   if pushed_key == '1'
-    r.Say 'ピー！と言う発信音の後にテキトーに喋ってください...ピー！'
-    r.Record :maxLength => '30', :action => '/hello-twilio/handle-record', :method => 'get'
+    response = Twilio::TwiML::Response.new do |r|
+      r.Say 'ピー！と言う発信音の後にテキトーに喋ってください。 何かキーを押すと録音を終了します。', :language => 'ja-jp'
+      r.Record :maxLength => '30', :action => '/hello-twilio/handle-record', :method => 'get'
+    end
   elsif pushed_key == '2'
-    r.Say 'サヨナラ！'
+    response = Twilio::TwiML::Response.new do |r|
+      r.Say 'サヨナラ！', :language => 'ja-jp'
+    end
   end
+  response.text
 end
 
 #
 # 録音したメッセージを再生する
 #
 get '/hello-twilio/handle-record' do
-  r.Say '録音したメッセージを再生します！'
-  r.Play params['RecordingUrl']
-  r.Say 'サヨナラ！'
+  Twilio::TwiML::Response.new do |r|
+    r.Say '録音したメッセージを再生します！', :language => 'ja-jp'
+    r.Play params['RecordingUrl']
+    r.Say 'サヨナラ！', :language => 'ja-jp'
+  end.text
 end
