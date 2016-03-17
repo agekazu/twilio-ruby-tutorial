@@ -5,7 +5,7 @@ require 'twilio-ruby'
 #
 # メッセージを再生する
 #
-get '/hello-twilio' do
+post '/hello-twilio' do
   Twilio::TwiML::Response.new do |r|
     r.Gather :numDigits => '1', :action => '/hello-twilio/handle-gather', :method => 'get' do |g|
       g.Say 'こんにちは！', :language => 'ja-jp'
@@ -45,4 +45,20 @@ get '/hello-twilio/handle-record' do
     r.Play params['RecordingUrl']
     r.Say 'サヨナラ！', :language => 'ja-jp'
   end.text
+end
+
+#
+# 電話をかける
+#
+get '/hello-twilio/make-call' do
+  account_sid = ENV['TWILIO_ACCOUNT_SID']
+  auth_token  = ENV['TWILIO_AUTH_TOKEN']
+  @client = Twilio::REST::Client.new account_sid, auth_token
+
+  @call = @client.account.calls.create(
+    :from => ENV['TWILIO_PHONE_NUMBER'],
+    :to   => ENV['MY_PHONE_NUMBER'],
+    :url  => 'https://twilio-ruby-agena.herokuapp.com/hello-twilio'
+  )
+
 end
